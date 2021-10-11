@@ -1,0 +1,142 @@
+openapi: 3.0.0
+info:
+  version: '1.0'
+  title: Person API
+  description: API providing capabilities around a Person Object
+  termsOfService: 'http://api.acme.com/terms'
+  contact:
+    name: Acme API Team
+    url: 'http://api.acme.com/support'
+    email: support@acme.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0'
+servers:
+  - url: 'https://development.acme.com/v1'
+    description: Development server
+  - url: 'https://api.acme.com/v1'
+    description: Production server
+paths:
+  /person:
+    get:
+      summary: Get all Persons
+      operationId: getPersons
+      security:
+        - person_auth:
+            - 'read:person'
+      description: Get all Person details which provides specific PII
+      tags:
+        - Person
+      parameters:
+        - $ref: '#/components/parameters/personId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persons'
+        '404':
+          description: Not Found
+    post:
+      summary: Create a Person
+      security:
+        - person_auth:
+            - 'write:person'
+      description: Create a Person using the provided details.
+      tags:
+        - Person
+      requestBody:
+        description: Pet to add to the store
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Person'
+            example:
+              id: 10
+              fname: Chris
+              lname: Riley
+              ssn: 123-23-1234
+              address:
+                street: 1 Water Street
+                zip: 11111-1111
+      responses:
+        '201':
+          description: Created
+components:
+  schemas:
+    Persons:
+      type: array
+      items:
+        $ref: '#/components/schemas/Person'
+    Person:
+      description: Person object
+      required:
+        - id
+      properties:
+        id:
+          description: identifier of the Person
+          type: integer
+          format: int64
+        fname:
+          description: first name of the Person
+          type: string
+        lname:
+          description: last name of the Person
+          type: string
+        ssn:
+          description: ssn of the Person
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+      discriminator:
+        propertyName: id
+    Address:
+      description: Address object
+      properties:
+        street:
+          type: string
+        zip:
+          type: string
+          pattern: '^[0-9]{5}(?:-[0-9]{4})?$'
+          maxLength: 10
+    Customer:
+      description: Customer object
+      allOf:
+        - $ref: '#/components/schemas/Person'
+        - type: object
+          properties:
+            customerType:
+              type: string
+              enum:
+              - external
+              - internal
+              - partner
+  parameters:
+    personId:
+      name: personId
+      description: Person identifier
+      required: true
+      in: query
+      schema:
+        type: number
+  securitySchemes:
+    person_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'http://example.org/api/oauth/dialog'
+          scopes:
+            'write:pets': modify pets in your account
+            'read:pets': read your pets
+security:
+  - person_auth:
+      - 'read:person'
+      - 'write:person'
+externalDocs:
+  description: API documents created by API team
+  url: 'http://api.acme.com/docs'
+  
+
+  

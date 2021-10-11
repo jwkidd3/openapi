@@ -1,0 +1,151 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Warehouse API",
+    "description": "Application Programming Interface for Warehouse Inventory Management",
+    "termsOfService": "http://api.acme.com/docs/terms.html",
+    "contact": {
+      "name": "Acme API Team",
+      "url": "http://api.acme.com/team.html",
+      "email": "info@api.acme.com"
+    },
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.acme.com/0.1.0"
+    },
+    {
+      "url": "https://api-test.acme.com/0.1.0"
+    }
+  ],
+  "paths": {
+    "/warehouse/{warehouseId}": {
+      "get": {
+        "description": "Get inventory from warehouse provided by warehouse identifier",
+        "security": [
+          {
+            "clientauth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/warehouseId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/warehouse"
+                }
+              },
+              "aoplication/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/warehouse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Add inventory item to warehouse",
+        "security": [
+          {
+            "clientauth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/inventory"
+              },
+              "example": {
+                "sku": "123-123",
+                "quantity": 2,
+                "barcode": "55-11-222"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "inventory": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "description": "SKU for the item",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "quantity of item",
+            "type": "number"
+          },
+          "barcode": {
+            "description": "barcode for bin that item is located in",
+            "type": "string"
+          }
+        }
+      },
+      "warehouse": {
+        "type": "object",
+        "description": "warehouse details and current inventory",
+        "properties": {
+          "warehouseId": {
+            "type": "string",
+            "enum": [
+              "10001",
+              "10002",
+              "10003"
+            ]
+          },
+          "stock": {
+            "type": "array",
+            "description": "current inventory in warehouse",
+            "items": {
+              "$ref": "#/components/schemas/inventory"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "warehouseId": {
+        "name": "warehouseId",
+        "description": "warehouse identifier",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "number"
+        }
+      }
+    },
+    "securitySchemes": {
+      "clientauth": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "http://api.acme.com/oauth/authorize",
+            "tokenUrl": "http://api.acme.com/oauth/token"
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "API Detailed Docs",
+    "url": "http://api.acme.com/docs/warehouse.html"
+  }
+}

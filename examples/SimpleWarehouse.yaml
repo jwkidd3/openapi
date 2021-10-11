@@ -1,0 +1,126 @@
+---
+openapi: 3.0.0
+info:
+  title: Warehouse API
+  description: Simple example showing Amazon Warehouse API is meant to help third-party suppliers with supply chain management
+  termsOfService: http://www.acme.com/termsOfService.html
+  contact:
+    name: Amazon API Support Team
+    url: http://api.acme.com/support.html
+    email: api@api.acme.com
+  license:
+    name: Apache-2.0
+    url: http://www.apache.org/apache.html
+  version: v1
+servers:
+- url: https://api.acme.com/{version}
+  description: Production endpoint
+  variables:
+    version:
+      default: v1
+- url: https://testapi.acme.com/{version}
+  description: Test endpoint
+  variables:
+    version:
+      default: v2
+      enum:
+      - v1
+      - v2
+paths:
+  /warehouses/{warehouseId}:
+    get:
+      tags:
+      - amazon warehouses
+      description: Get all inventory in warehouses
+      parameters:
+      - name: warehouseId
+        in: path
+        description: identifier for warehouse
+        required: true
+        style: SIMPLE
+        explode: false
+        schema:
+          type: number
+          enum:
+          - 10001
+          - 10002
+          - 10003
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/warehouse'
+    post:
+      tags:
+      - amazon warehouses
+      description: Create inventory
+      parameters:
+      - name: warehouseId
+        in: path
+        description: identifier for warehouse
+        required: true
+        style: SIMPLE
+        explode: false
+        schema:
+          type: number
+          enum:
+          - 10001
+          - 10002
+          - 10003
+      requestBody:
+        description: Inventory object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/inventory'
+      responses:
+        201:
+          description: Created
+components:
+  schemas:
+    warehouse:
+      type: object
+      properties:
+        warehouseId:
+          type: string
+          description: warehouse identifier that identifes its location
+        inventories:
+          type: array
+          description: current inventory of items available in the warehouse
+          items:
+            $ref: '#/components/schemas/inventory'
+      description: warehouse meta-data including location and inventory
+    inventory:
+      type: object
+      properties:
+        sku:
+          type: string
+          description: stock keeping unit
+        quantity:
+          type: integer
+          description: number of available inventory
+          format: int32
+        location:
+          type: string
+          description: barcode location in the warehouse
+        warehouseId:
+          type: string
+          description: warehouse identifier that SKU is located
+      description: a single inventory object
+  parameters:
+    warehouseId:
+      name: warehouseId
+      in: path
+      description: identifier for warehouse
+      required: true
+      style: SIMPLE
+      explode: false
+      schema:
+        type: number
+        enum:
+        - 10001
+        - 10002
+        - 10003
+  extensions: {}

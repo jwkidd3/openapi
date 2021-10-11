@@ -1,0 +1,196 @@
+openapi: 3.0.0
+info:
+  title: Inventory API
+  description: API to provided latest inventory at Warehouse
+  termsOfService: "http://www.acme.com/docs/terms.html"
+  contact:
+    name: Acme API Team
+    url: "http://api.acme.com/docs/team.html"
+    email: team@api.acme.com
+  license:
+    name: LICENSE-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 0.1.0
+servers: 
+  - url: http://api.acme.com/{basePath}
+    description: Production Server
+    variables:
+      basePath:
+        default: 'v0.1'
+  - url: http://apitest.acme.com/{testPath}
+    description: Test Server
+    variables:
+      testPath:
+        default: 'v0.2'
+paths:
+  /warehouses/{warehouseId}:
+    get:
+      description: Get all inventory from warehouse using warehouse Id
+      tags: 
+        - Amazon Warehouses
+      security:
+        - clientauth: [read_warehouses]
+      parameters: 
+        - $ref: '#/components/parameters/warehouseId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+  /warehouses:
+    post:
+      description: Create an inventory item in warehouse
+      tags:
+        - Amazon Warehouses
+      security:
+        - clientauth: [write_warehouses]
+      requestBody:
+        description: Inventory item
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Inventory'
+            example:
+              SKU: 123
+              Quantity: 1
+              Location: NNG-123
+      responses:
+        201:
+          description: Created
+  /warehouses/ext/{extWarehouseId}:
+    get:
+      description: Get all Inventory for External Third-Party Warehouses in Europe
+      tags: 
+        - External Warehouses
+      security:
+        - clientauth: [read_warehouses]
+      parameters: 
+        - $ref: '#/components/parameters/extWarehouseId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+      
+components:
+  schemas:
+    ExternalWarehouse:
+      allOf:
+        - $ref: '#/components/schemas/Warehouse'
+        - type: object
+          required: 
+            - externalPartnerName
+          properties:
+            externalPartnerName:
+              type: string
+              enum: ['Logistix','Oberon']
+            externalWarehouseId:
+              type: number
+    Warehouse:
+      type: object
+      description: Warehouse data set encompasing list of Inventory
+      properties:
+        warehouseId:
+          description: Identifier for Warehouse
+          type: number
+        Inventories:
+          type: array
+          description: Array of Inventory objects
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/Inventory'
+              - $ref: '#/components/schemas/ExternalInventory'
+            discriminator:
+              propertyName: inventoryType
+    Inventory:
+      type: object
+      description: A single inventory object
+      required:
+        - inventoryType
+      properties:
+        SKU:
+          description: Stock Keeping Unit Barcode
+          type: string
+        Quantity:
+          description: Quantity of SKU currently available
+          type: integer
+        Location:
+          description: Barcode with location details of SKU
+          type: string
+        # discriminator to help identify this as Inventory object
+        inventoryType:
+          type: string
+    ExternalInventory:
+      type: object
+      description: A single inventory object
+      required:
+        - inventoryType
+      properties:
+        SKU:
+          description: Stock Keeping Unit Barcode
+          type: string
+        Quantity:
+          description: Quantity of SKU currently available
+          type: integer
+        Description:
+          description: Definition of SKU
+          type: string
+        # discriminator to help identify this as ExternalInventory object
+        inventoryType:
+          type: string
+  parameters:
+    warehouseId:
+      name: warehouseId
+      description: Identifier for Warehouse
+      in: path
+      required: true
+      schema:
+        type: number
+        enum: [100001,100002,100003]
+    extWarehouseId:
+      name: extWarehouseId
+      description: Identifier for External Warehouse
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [X10001,X10002,X10003]
+  securitySchemes:
+    clientauth:
+      # AuthorizationCode OAuth2 Example
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: http://api.acme.com/oauth2/authorize
+          tokenUrl: http://api.acme.com/oauth2/token
+          scopes:
+            'read_warehouses' : Provide ability to get inventory
+            'write_warehouses' : Provide ability to create inventory
+      
+      
+      # Implicit OAuth2 Example
+      # type: oauth2
+      # flows:
+      #   implicit:
+      #     authorizationUrl: http://api.acme.com/oauth2/authorize
+      
+      
+      # HTTP Basic Example
+      #type: http
+      #scheme: basic
+      
+      
+        
+      
+    
+        
